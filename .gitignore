@@ -1,0 +1,6 @@
+.env
+__pycache__/
+*.webm
+*.mp3
+database.json
+temp_audio_*.wav
