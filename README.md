@@ -1,82 +1,80 @@
-## 🌟 1. ملخص النظام ودورة العمل الكاملة (Workflow)
-مشروع **MenaJobs AI Screener** هو منصة توظيف تفاعلية وحية مدعومة بالذكاء الاصطناعي (End-to-End AI System) مبنية بلغة بايثون. يعمل النظام بشكل أتوماتيكي بالكامل ليقوم بدور محاور الموارد البشرية، ويقود المرشح في تجربة مقابلة فيديو تشبه منصات (Zoom)، ليعود في النهاية بتقرير وتقييم من 10 حول قدرات المرشح.
+## 🌟 1. System Overview & Complete Workflow
+The **MenaJobs AI Screener** project is an interactive, End-to-End AI-powered recruitment platform constructed purely in Python. It completely automates the screening phase by having an AI act as an HR interviewer, conducting a Zoom-like video session with the candidate, recording their responses continuously, and finally applying deep semantic inference to generate an analytical hiring report.
 
-**📌 مسار العمل للمنظومة:**
-1. **وضع المعايير (HR Input):** يدخل مدير التوظيف لبوابته، ويقوم بكتابة قائمة الأسئلة والمهارات المستهدفة من كل سؤال.
-2. **محاكاة المقابلة (Candidate Room):** يفتح المرشح رابطه الخاص لتفتح الكاميرا والمايكروفون. يقوم الموديل بنطق الأسئلة بصوت رجل آلي احترافي عربي، وينتظر إجابة المرشح أثناء تسجيل فيديو متصل.
-3. **تفكيك البيانات (Data Decoding):** يتم حفظ الفيديو وتجزئة أزمنته بدقة الملي-ثانية لضمان فصل إجابة كل سؤال عن الآخر.
-4. **التحليل والاستنتاج (AI Inference):** يتم تفريغ الصوت إلى نص، وتقييم النصوص مقارنة بالمهارات المطلوبة لإنتاج تقرير استشاري نهائي.
-
----
-
-## 🔬 2. التفاصيل التقنية الخوارزمية (Data Science & AI Perspective)
-يرتكز هذا المشروع على أعمدة متقدمة جداً من علوم البيانات والذكاء الاصطناعي:
-
-### أ. معالجة الإشارات الصوتية (ASR & TTS)
-* **تحويل النص إلى صوت (TTS):** استخدام `Edge-TTS` مع موديل `ar-SA-HamedNeural` لبناء محاور سعودي ذكري بصوت يطابق البشر بلكنة رسمية واضحة لطرح الأسئلة.
-* **تحويل الصوت إلى نص (ASR):** الاعتماد الكلي على موديل `Whisper-Large-v3-Turbo` من OpenAI عبر منصة (HuggingFace) لقدرته الخارقة على التعرف على اللهجات العربية وتجاهل الضوضاء المحيطة. تم تأمين العملية بخوارزمية (Retry Mechanism) تحمي النظام من أخطاء الـ API وانقطاعات نقل البيانات.
-
-### ب. هندسة التلقين ومعالجة اللغات (NLP & Prompt Engineering)
-* تم استخدام موديل `Qwen 2.5 - 7B`، وهو موديل شبكات عصبية ضخم مفتوح المصدر تم تطويعه عبر هندسة التلقين ليعمل كخبير تقييم (Strict Evaluator Persona).
-* لا يقوم الموديل بالبحث عن الكلمات المفتاحية بل يفهم (السياق الدلالي) للإجابات المفرغة. وتم إجباره على الرد بقالب (Framework) ثابت يتكون من 3 أجزاء:
-  1. التحليل الفني والسلوكي لكل سؤال مع ذكر المبرر بناءً على كلام المرشح الفعلي.
-  2. التقييم الشامل لاستنباط نقاط القوة والضعف (Feature Extraction).
-  3. القرار الكمّي والرقمي المباشر (تقييم شامل من 10) مع نتيجة حالة المرشح (مؤهل/غير مؤهل).
-
-### ج. الرؤية الحاسوبية وتأمين الاختبار (Computer Vision & Proctoring)
-* تم استخدام خوارزميات الاكتشاف الكلاسيكية (Object Detection) التابعة لـ `OpenCV` (Haar Cascades).
-* تم ضبط الخوارزمية كالتالي: إرسال (Frame) من فيديو المرشح، تحويله إلى التدرج الرمادي (Grayscale) لتسريع المعالجة، ثم البحث بمحددات `scaleFactor=1.3` للتأكد من وجود (وجه بشري واحد فقط). إذا تم اكتشاف صفر وجوه أو أكثر من وجه، يتم وضع إشارة حمراء (Red Flag) في تقرير الإدارة.
-
-### د. هندسة البيانات وفصلها الزمني (Data Pipeline & Timestamps)
-* يمتلك النظام خوارزمية ذكية في واجهة الواجهة الأمامية مبنية بـ Javascript تلتقط الزمن الفعلي (بالثواني) لانتقال المرشح بين الأسئلة.
-* في الواجهة الخلفية، تُستخدم أداة `FFMPEG` بقوة لسحب هذه الأزمنة وتقطيع ملف الفيديو المستمر (Continuous WebM file) إلى مقاطع صوتية متناهية الصغر كل مقطع يطابق سؤالاً محدداً تماماً لضمان عدم وجود تداخلات (Overlaps) أثناء معالجة اللغة.
+**📌 The Architectural Workflow:**
+1. **Criteria Input (HR Portal):** The HR professional accesses the portal, entering the precise questions alongside the target skills they wish to test.
+2. **Interview Simulation (Candidate Room):** The candidate opens their link, and the browser initiates a secure WebRTC session. The AI poses the questions out loud via a professional synthesized male Arabic voice, waiting sequentially for the user's responses while recording a continuous WebM video chunk.
+3. **Data Decoding & Timetracking:** Upon completion, the massive WebM blob alongside a highly precise array of JS-collected timestamps (measuring exact sub-second click offsets) is transferred to the server.
+4. **AI Inference & Extraction:** The system natively slices the video based on the timestamps to segregate isolated speech segments, transcribes the segments, and channels them through to a generative LLM for qualitative candidate analysis.
 
 ---
 
-## 📂 3. بنية الملفات وشرحها الوظيفي العميق بالتسلسل (File Tree)
+## 🔬 2. Advanced Algorithmic Details (Data Science & AI Perspective)
+This project is deeply rooted in 4 major pillars of modern AI and Data Engineering:
 
-النظام عبارة عن هيكل برمجي مكون من 10 ملفات أساسية لا يمكن الاستغناء عن أي منها:
+### A. Speech Signal Processing (ASR & TTS)
+* **Text-to-Speech (TTS):** Employing `Edge-TTS` via the `ar-SA-HamedNeural` model to dynamically synthesize a hyper-realistic, authoritative male Arabic voice for dictating questions to the candidate in real-time.
+* **Automatic Speech Recognition (ASR):** Full reliance on the bleeding-edge `Whisper-Large-v3-Turbo` model provided via HuggingFace Hub for zero-shot acoustic decoding. Handling the chaotic nature of networking, a custom backoff/retry algorithm guarantees the connection persists even if micro-interruptions occur during large file transmissions.
 
-### ⚙️ أولاً: العقل والعمليات الخلفية (Backend & Core)
-**1. ملف `core_functions.py` (العقل المدبر)**
-* **المحتوى:** الدوال الرئيسية الجوهرية (AI Logics).
-* **الأدوات:** `OpenCV`, `HuggingFace_hub`, `edge-tts`.
-* **النقاط التقنية الدقيقة:** تم فصل كل دوال الذكاء الاصطناعي بهذا الملف لجعله وحدة معالجة مستقلة. يحتوي على `transcribe_audio` مع استراتيجية معالجة فشل الاتصال، و `get_ai_response` التي تحول السياق لتوليد التقرير الأقصى بحد 2048 Token، ودالة التقاط الوجه.
+### B. NLP & Prompt Engineering (Semantic Processing)
+* Powered by `Qwen 2.5 - 7B`, an open-weights massive language model fine-tuned for instructional alignment.
+* The model evaluates the candidate conceptually rather than relying on brittle Keyword-matching. It dictates a 3-part framework forced upon the model through strict engineering:
+  1. Deep Technical/Behavioral analysis per individual question correlating exactly to the candidate's transcribed words.
+  2. Holistic Extraction identifying overall operational strengths and weaknesses.
+  3. Absolute quantitative scoring (Out of 10 ratings) terminating with a Final Output classification (Qualified, Under Review, Disqualified).
 
-**2. ملف `db_manager.py` (منسق البيانات وادارة الحالة)**
-* **المحتوى:** جسر التواصل البرمجي وقاعدة البيانات المؤقتة.
-* **النقاط التقنية الدقيقة:** ملف تعقب الحالة (State Management) المكون من أوامر CRUD لتبادل المصفوفات والفيديو وحالة النظام (من Pending وحتى Analyzed) على ملف `database.json` لضمان ألا تضيع بيانات المرشح إذا أغلق الـ HR المتصفح عن طريق الخطأ.
+### C. Computer Vision & Automated Proctoring (Security)
+* Leveraging classical Machine Learning Object Detection via `OpenCV` logic (Haar Cascade Classifiers).
+* Processing raw captured video frames algorithmically (scaling via `scaleFactor=1.3`, smoothing via Grayscale transformations) to detect human faces. It enacts an automated red-flag rule: 0 faces detected implies avoidance, while >1 face implies external cheating interference.
 
----
-
-### 🌐 ثانياً: واجهات المستخدم المنفصلة (Frontend Portals)
-**3. ملف `app.py` (نقطة الدخول)**
-* **المحتوى:** مفرّق المرور والصفحة الترحيبية للبرنامج.
-* **النقاط التقنية الدقيقة:** مبني بواجهة زجاجية متقدمة من CSS لتخيير المستخدم بشكل أنيق بين الدخول لنظام الشركة أو لنظام المقابلة المباشرة.
-
-**4. ملف `pages/1_hr_portal.py` (غرفة عمليات الإدارة)**
-* **المحتوى:** واجهة لوحة تحكم الشركات التفاعلية.
-* **الأدوات:** `Streamlit`, `imageio_ffmpeg`, `subprocess`.
-* **النقاط التقنية الدقيقة:** هذا هو الملف الأثقل تنفيذاً؛ فهو يتفاعل مع إدخالات الموارد البشرية، ويشغل الفيديوهات الملتقطة مستخدماً `st.video`، والأهم أنه يحتوي على (دورة التقطيع) باستخدام FFMPEG لكل مسار زمني قبل طرح التقرير.
-
-**5. ملف `pages/2_candidate_portal.py` (غرفة التحقيق الذكية)**
-* **المحتوى:** الواجهة الحية للمرشح المبنية على بساطة الإجراء والخفاء برمجياً.
-* **النقاط التقنية الدقيقة:** يقوم بتحميل الأسئلة وتغليف الصوتيات المسبقة الصنع عبر Base64، ويفعل كود الكاميرا المخصص وبمجرد الانتهاء يحصل على مسارات الفيديو المشفر، يفك تشفيرها بايثون، ويحفظ الفيديو على محرك أوراكل الخاص بالمتصفح بشكل فوري.
+### D. Data Pipelines & Native Media Slicing
+* Integrating an intelligent Frontend event listener utilizing `Date.now()` to construct a floating timestamps array mapping explicitly when candidates shift from one question context to the other.
+* Over on the Backend, an `FFMPEG` pipeline parses this array, issuing precise `-ss` (start) and `-t` (duration) byte-extraction commands to natively slice the continuous WebM file into purely isolated micro-audio bursts, guaranteeing zero NLP semantic overlapping during evaluation.
 
 ---
 
-### 🎥 ثالثاً: المكونات المخصصة للكاميرا وتسجيل المسارات (Custom Component)
-**6. ملف `video_recorder/index.html` (المحرك السري للكاميرا)**
-* **المحتوى:** مكوّن ويب خارجي محقون داخل بايثون (iFrame Component).
-* **النقاط التقنية الدقيقة:** الواجهة الحقيقية لجمع البيانات. تم تصميمها بـ WebRTC API لفتح الكاميرا والميكروفون بـ `getUserMedia`. تقوم الدالة بملء مصفوفات `timestamps` عند كل استجابة من زر "الانتقال"، وتسجل فيديو واحد متصل عبر `MediaRecorder` و `FileReader`، وتجلب بياناتها مباشرة من دون إعادة تحميل صفحة البايثون الرئيسية!
+## 📂 3. Exact File Structure & Functional Breakdown (File Tree)
 
-**7. ملف `video_recorder/__init__.py`**
-* **المحتوى:** مصرح المكونات الثنائية الاتجاه (Bidirectional Component Declarer).
-* **النقاط التقنية الدقيقة:** ملف المارشيالنج. يرسل أوامر الـ JSON الخاصة بالأسئلة للواجهة، ويستقبل ملف الفيديو كملف كبير ليرسله للـ `candidate_portal` من أجل حفظه.
+The repository constitutes 10 robust files operating in complete concert:
+
+### ⚙️ Part One: The Logical AI Core Framework
+**1. `core_functions.py` (The Mastermind)**
+* **Content:** Primary ML wrappers.
+* **Deep Mechanics:** All pure algorithmic logic exists here, decoupled from GUI representation. It runs `transcribe_audio` alongside API resilience mechanisms, pushes prompts through `get_ai_response` leveraging up to 2048 response tokens, and triggers the `check_face_presence` CV function.
+
+**2. `db_manager.py` (State Management DB)**
+* **Content:** Persistent State layer handler bridging the disjoint systems.
+* **Deep Mechanics:** Using `database.json`, it implements classic JSON CRUD endpoints tracking the interview's lifecycle state (pending -> ready_for_candidate -> completed -> analyzed) preventing UI state-loss upon browser refreshes.
 
 ---
 
-### 📦 رابعاً: البيئة والتجهيزات التقنية (Environment & Config)
-**8. `requirements.txt`:** الملف التعريفي لكافة المكتبات التقنية مع أحدث إصداراتها (`opencv-python`, `imageio-ffmpeg`، إلخ) ليسهل نشر وتشغيل المشروع على أي خادم سحابي كـ AWS أو Azure.
-**9. `.env`:** الصندوق الأسود لتخزين المتغيرات البيئية الأمنية (`HF_TOKEN`) لضمان عدم تسريب المفاتيح لأي مطور يطلع على الأكواد.
-**10. `start.py`:** الكود المعماري النادر. يمتلك حلاً لبرمجيات `asyncio` الخاصة بويندوز والتي تعيق عمل `Streamlit` مع بايثون الحديثة (3.14). هذا هو "مشغل المحرك" الفعلي الذي يبقيه حياً مهما كانت استجابات الشبكة.
+### 🌐 Part Two: User GUI Portals
+**3. `app.py` (Main Gateway)**
+* **Content:** Minimalist Landing Router.
+* **Deep Mechanics:** Employs clean Streamlit layout cards dynamically routing the incoming user flow explicitly to either the Administrative domain or the Candidate domain.
+
+**4. `pages/1_hr_portal.py` (Command & Control Center)**
+* **Content:** The corporate multi-tab dashboard.
+* **Deep Mechanics:** This file is visually driven but handles massive background compute. Depending on DB triggers, it iterates the FFMPEG commands for segmentation, instantiates explicit native `st.video()` handlers dynamically passing the recorded video URL back to the HR manager, and assembles the massive Markdown AI result strings.
+
+**5. `pages/2_candidate_portal.py` (The Live Session Engine)**
+* **Content:** The isolated UX for the applicant.
+* **Deep Mechanics:** Programmatically compiles localized arrays of Base64 MP3 tracks (generated via TTS in real-time) prior to starting, loading them securely into the HTML component ensuring immediate audio playback synchronously with the JavaScript UI states.
+
+---
+
+### 🎥 Part Three: Custom Embedded Component
+**6. `video_recorder/index.html` (The Undetectable Media Engine)**
+* **Content:** The raw Javascript GUI element injected directly into Streamlit via iFrame.
+* **Deep Mechanics:** Uses native browser elements (MediaRecorder API) capturing chunked blobs. The custom JS logic tracks `[0, x, y, z]` timing arrays based purely on UI `onclick` bounds, eventually emitting an integrated JSON object back to the parent container hosting Python execution lines.
+
+**7. `video_recorder/__init__.py`**
+* **Content:** Streamlit Component Declarator.
+* **Deep Mechanics:** A python layer declaring the frontend components existence to the Streamlit execution tree permitting Python to invoke Javascript while supplying JSON arguments.
+
+---
+
+### 📦 Part Four: Environmental Infrastructure
+**8. `requirements.txt`:** The dependency map outlining the Python environment architecture (OpenCV, Pydub, Streamlit, HuggingFace, etc) to ensure fault-tolerance during server setup deployment.
+**9. `.env`:** Local hidden file storing environment-specific variables namely the API `HF_TOKEN` safeguarding account permissions.
+**10. `start.py`:** The specialized `asyncio.ProactorEventLoop` driver. Formulated explicitly so Python 3.14 Windows instances can maintain endless runtime Streamlit event-loops without experiencing hard asynchronous crashes.
