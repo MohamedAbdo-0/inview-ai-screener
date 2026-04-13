@@ -1,5 +1,7 @@
 ## 🌟 1. System Overview & Complete Workflow
-The **MenaJobs AI Screener** project is an interactive, End-to-End AI-powered recruitment platform constructed purely in Python. It completely automates the screening phase by having an AI act as an HR interviewer, conducting a Zoom-like video session with the candidate, recording their responses continuously, and finally applying deep semantic inference to generate an analytical hiring report.
+The **MenaJobs AI Screener** project is an interactive, End-to-End AI-powered recruitment platform constructed purely in Python. It completely automates the screening phase by having an AI act as an HR interviewer, conducting a Zoom-like video session with the candidate, recording their responses continuously, and finally applying deep semantic inference to generate an analytical hiring report. 
+
+**🌍 NOW FEATURING FULL BILINGUAL SUPPORT (Arabic & English):** The entire application interface, AI prompts, and TTS voice generation can be toggled instantly between English and Arabic, providing a robust localized experience for HR and candidates natively through a dedicated `i18n.py` framework.
 
 **📌 The Architectural Workflow:**
 1. **Criteria Input (HR Portal):** The HR professional accesses the portal, entering the precise questions alongside the target skills they wish to test.
@@ -42,7 +44,11 @@ The repository constitutes 10 robust files operating in complete concert:
 * **Content:** Primary ML wrappers.
 * **Deep Mechanics:** All pure algorithmic logic exists here, decoupled from GUI representation. It runs `transcribe_audio` alongside API resilience mechanisms, pushes prompts through `get_ai_response` leveraging up to 2048 response tokens, and triggers the `check_face_presence` CV function.
 
-**2. `db_manager.py` (State Management DB)**
+**2. `i18n.py` (Internationalization Engine)**
+* **Content:** Bilingual dictionary mapping and dynamic state tracking.
+* **Deep Mechanics:** Stores UI strings, system prompts, and CSS RTL/LTR configuration for dynamically switching the entire application's UI and AI responses between English and Arabic globally via Streamlit's session states.
+
+**3. `db_manager.py` (State Management DB)**
 * **Content:** Persistent State layer handler bridging the disjoint systems.
 * **Deep Mechanics:** Using `database.json`, it implements classic JSON CRUD endpoints tracking the interview's lifecycle state (pending -> ready_for_candidate -> completed -> analyzed) preventing UI state-loss upon browser refreshes.
 
