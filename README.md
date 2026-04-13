@@ -1,5 +1,8 @@
 ## 🌟 1. System Overview & Complete Workflow
-**🚀 [Live Demo: Click here to try the AI Screener!](https://mohamedabdo-0-oy75uuxdxc5oagso5mbvav.streamlit.app/)**
+---
+#### 🔗 **The entire project is live and accessible here:**  
+### 👉 **[https://mohamedabdo-0-oy75uuxdxc5oagso5mbvav.streamlit.app/](https://mohamedabdo-0-oy75uuxdxc5oagso5mbvav.streamlit.app/)**
+---
 
 The **MenaJobs AI Screener** project is an interactive, End-to-End AI-powered recruitment platform constructed purely in Python. It completely automates the screening phase by having an AI act as an HR interviewer, conducting a Zoom-like video session with the candidate, recording their responses continuously, and finally applying deep semantic inference to generate an analytical hiring report. 
 
