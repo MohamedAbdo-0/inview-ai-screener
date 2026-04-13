@@ -1,5 +1,8 @@
-openai
-gradio
-python-dotenv
-opencv-python
+streamlit
+opencv-python-headless
 numpy
+huggingface-hub
+edge-tts
+python-dotenv
+imageio-ffmpeg
+imageio
