@@ -1,4 +1,4 @@
-# Inview AI Screener - Entry Point
+# Inview AI Screener
 import asyncio
 import sys
 

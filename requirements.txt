@@ -1,4 +1,4 @@
-# Inview AI Screener - Dependencies
+# Inview AI Screener
 streamlit
 opencv-python-headless
 numpy

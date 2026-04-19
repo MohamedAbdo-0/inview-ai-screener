@@ -1,4 +1,4 @@
-# Inview AI Screener - Core Logic Functions
+# Inview AI Screener
 import cv2
 from huggingface_hub import InferenceClient
 import time

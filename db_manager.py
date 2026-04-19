@@ -1,4 +1,4 @@
-# Inview AI Screener - Database Manager
+# Inview AI Screener
 import json
 import os
 
