@@ -1,3 +1,4 @@
+# Inview AI Screener - Video Recorder Component
 import os
 import streamlit.components.v1 as components
 

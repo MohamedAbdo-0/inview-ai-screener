@@ -1,3 +1,4 @@
+# Inview AI Screener - Ignore Files
 .env
 __pycache__/
 *.webm
