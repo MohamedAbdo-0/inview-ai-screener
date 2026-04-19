@@ -1,7 +1,7 @@
 # Inview AI Screener
 translations = {
     "ar": {
-        "page_title_app": "Inview AI Screener",
+        "page_title_app": "Inview AI Screener v1.1",
         "app_subtitle": "النظام الشامل والذكي لمقابلات التوظيف بالفيديو باستخدام الذكاء الاصطناعي",
         "choose_portal": "### 🏢 اختيار بوابة الدخول:",
         "hr_portal_title": "👨‍💼 بوابة الشركة (HR Portal)",
