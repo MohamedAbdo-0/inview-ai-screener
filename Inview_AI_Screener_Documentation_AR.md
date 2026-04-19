@@ -50,7 +50,7 @@ The repository constitutes 10 robust files operating in complete concert:
 ---
 
 ### 🌐 Part Two: User GUI Portals
-**3. `app.py` (Main Gateway)**
+**3. `Inview.py` (Main Gateway)**
 * **Content:** Minimalist Landing Router.
 * **Deep Mechanics:** Employs clean Streamlit layout cards dynamically routing the incoming user flow explicitly to either the Administrative domain or the Candidate domain.
 

@@ -19,5 +19,5 @@ asyncio.get_event_loop = safe_get_event_loop
 from streamlit.web import cli
 
 if __name__ == "__main__":
-    sys.argv = ["streamlit", "run", "app.py"]
+    sys.argv = ["streamlit", "run", "Inview.py"]
     sys.exit(cli.main())
