@@ -164,103 +164,49 @@ def get_base_css():
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@300;400;700;900&display=swap');
         
         * {{
-            font-family: { "'Noto Kufi Arabic'" if lang == "ar" else "'Outfit'" }, sans-serif;
+            font-family: { "'Noto Kufi Arabic'" if lang == "ar" else "'Outfit'" }, sans-serif !important;
         }}
 
         .stApp {{
-            background: radial-gradient(circle at top right, #1e272e, #0f0f0f);
-            color: #ffffff;
+            background: radial-gradient(circle at top right, #1e272e, #0f0f0f) !important;
+            color: #ffffff !important;
         }}
 
-        [data-testid="stHeader"] {{
-            background: rgba(0,0,0,0);
+        [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stSidebar"], [data-testid="stToolbar"] {{
+            background: #0f0f0f !important;
+            background: radial-gradient(circle at top right, #1e272e, #0f0f0f) !important;
         }}
 
-        /* Glow Text Effect */
         .glow-text {{
-            color: #ffffff;
-            text-shadow: 0 0 10px rgba(9, 132, 227, 0.8), 0 0 20px rgba(9, 132, 227, 0.5);
-            font-weight: 800;
-            text-align: center;
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(9, 132, 227, 0.8), 0 0 20px rgba(9, 132, 227, 0.5) !important;
+            font-weight: 800 !important;
         }}
 
-        /* Glassmorphism Card */
         .glass-card {{
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 25px;
-            transition: all 0.4s ease;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            background: rgba(255, 255, 255, 0.03) !important;
+            backdrop-filter: blur(15px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 20px !important;
+            padding: 30px !important;
+            margin-bottom: 25px !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+            text-align: {align} !important;
         }}
 
-        .glass-card:hover {{
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(9, 132, 227, 0.5);
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px 0 rgba(9, 132, 227, 0.2);
-        }}
-
-        /* Custom Button */
         .stButton > button {{
-            background: linear-gradient(135deg, #0984e3, #00cec9);
+            background: linear-gradient(135deg, #0984e3, #00cec9) !important;
             color: white !important;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            width: 100%;
-            transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(9, 132, 227, 0.3);
+            border: none !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 15px rgba(9, 132, 227, 0.3) !important;
+            font-weight: 600 !important;
         }}
 
-        .stButton > button:hover {{
-            box-shadow: 0 6px 20px rgba(9, 132, 227, 0.5);
-            transform: scale(1.02);
-            border: none;
-        }}
-
-        /* Sidebar Styling */
-        [data-testid="stSidebar"] {{
-            background-color: #0c0c0c;
-            border-right: 1px solid rgba(255,255,255,0.05);
-        }}
-
-        .main-hero {{
-            text-align: center;
-            padding: 60px 0;
-            background: linear-gradient(to bottom, rgba(9, 132, 227, 0.1), transparent);
-            border-radius: 30px;
-            margin-bottom: 40px;
-        }}
-
-        h1, h2, h3 {{
-            color: #f5f5f5;
-        }}
-
-        .feature-list {{
-            list-style: none;
-            padding: 0;
-        }}
-
-        .feature-list li {{
-            margin-bottom: 12px;
-            padding-right: { "25px" if lang == "ar" else "0" };
-            padding-left: { "0" if lang == "ar" else "25px" };
-            position: relative;
-        }}
-
-        .feature-list li::before {{
-            content: "✦";
-            position: absolute;
-            { "right" if lang == "ar" else "left" }: 0;
-            color: #0984e3;
-        }}
-        
-        [data-testid="stSidebarNav"] {{
-            padding-top: 2rem;
+        h1, h2, h3, h4, h5, h6, p, li, label, div {{
+            color: white !important;
+            text-align: {align} !important;
+            direction: {direction} !important;
         }}
     </style>
     """
