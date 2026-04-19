@@ -17,7 +17,7 @@ except ImportError as e:
 load_dotenv()
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-st.set_page_config(page_title="HR Portal", page_icon="🏢", layout="wide")
+st.set_page_config(page_title="Inview HR Portal", page_icon="🏢", layout="wide")
 
 select_language()
 

@@ -4,7 +4,7 @@
 ### 👉 **[https://mohamedabdo-0-oy75uuxdxc5oagso5mbvav.streamlit.app/](https://mohamedabdo-0-oy75uuxdxc5oagso5mbvav.streamlit.app/)**
 ---
 
-The **MenaJobs AI Screener** project is an interactive, End-to-End AI-powered recruitment platform constructed purely in Python. It completely automates the screening phase by having an AI act as an HR interviewer, conducting a Zoom-like video session with the candidate, recording their responses continuously, and finally applying deep semantic inference to generate an analytical hiring report. 
+The **Inview AI Screener** project is an interactive, End-to-End AI-powered recruitment platform constructed purely in Python. It completely automates the screening phase by having an AI act as an HR interviewer, conducting a Zoom-like video session with the candidate, recording their responses continuously, and finally applying deep semantic inference to generate an analytical hiring report. 
 
 **🌍 NOW FEATURING FULL BILINGUAL SUPPORT (Arabic & English):** The entire application interface, AI prompts, and TTS voice generation can be toggled instantly between English and Arabic, providing a robust localized experience for HR and candidates natively through a dedicated `i18n.py` framework.
 

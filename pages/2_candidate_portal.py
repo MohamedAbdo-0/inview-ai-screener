@@ -19,7 +19,7 @@ try:
 except ImportError as e:
     st.error(f"خطأ في مسار البيئة: {e}")
 
-st.set_page_config(page_title="Candidate Portal", page_icon="🎥", layout="wide")
+st.set_page_config(page_title="Inview Candidate Portal", page_icon="🎥", layout="wide")
 
 select_language()
 

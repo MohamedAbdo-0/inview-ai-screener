@@ -1,6 +1,6 @@
 translations = {
     "ar": {
-        "page_title_app": "MenaJobs AI Screener",
+        "page_title_app": "Inview AI Screener",
         "app_subtitle": "النظام الشامل والذكي لمقابلات التوظيف بالفيديو باستخدام الذكاء الاصطناعي",
         "choose_portal": "### 🏢 اختيار بوابة الدخول:",
         "hr_portal_title": "👨‍💼 بوابة الشركة (HR Portal)",
@@ -15,7 +15,7 @@ translations = {
         "enter_cand": "⬅️ الدخول كمرشح لإجراء المقابلة 🎥",
 
         "hr_page_title": "بوابة الشركة (HR)",
-        "hr_main_title": "🏢 بوابة شركة التوظيف (MenaJobs HR)",
+        "hr_main_title": "🏢 بوابة شركة التوظيف (Inview HR)",
         "tab_prepare": "📝 تجهيز الأسئلة للمرشح",
         "tab_report": "📊 تقرير نتيجة المقابلة",
         "q_text": "نص السؤال بصيغة رسمية",
@@ -64,7 +64,7 @@ translations = {
         "safe_face": "الوضع البصري آمن."
     },
     "en": {
-        "page_title_app": "MenaJobs AI Screener",
+        "page_title_app": "Inview AI Screener",
         "app_subtitle": "The Comprehensive & Intelligent AI Video Interviewing System",
         "choose_portal": "### 🏢 Select Portal:",
         "hr_portal_title": "👨‍💼 HR Portal",
@@ -79,7 +79,7 @@ translations = {
         "enter_cand": "⬅️ Enter as a Candidate 🎥",
 
         "hr_page_title": "HR Portal",
-        "hr_main_title": "🏢 Recruitment Company Portal (MenaJobs HR)",
+        "hr_main_title": "🏢 Recruitment Company Portal (Inview HR)",
         "tab_prepare": "📝 Prepare Candidate Questions",
         "tab_report": "📊 Interview Result Report",
         "q_text": "Question Text (Formal)",

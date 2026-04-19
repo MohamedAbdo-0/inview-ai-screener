@@ -8,7 +8,7 @@ try:
 except ImportError:
     st.error("i18n file missing.")
 
-st.set_page_config(page_title="MenaJobs AI Screener", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="Inview AI Screener", page_icon="🚀", layout="wide")
 
 select_language()
 
