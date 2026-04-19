@@ -1,3 +1,4 @@
+# Inview AI Screener
 translations = {
     "ar": {
         "page_title_app": "Inview AI Screener",
