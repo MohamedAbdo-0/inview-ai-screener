@@ -5,22 +5,68 @@
   <meta charset="utf-8">
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
   <style>
-     body { background-color: transparent; color: white; display: flex; flex-direction: column; align-items: center; font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; margin: 0; padding: 10px; overflow: hidden; }
-     #vid-container { width: 100%; max-width: 850px; position: relative; background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid #444; }
-     video { width: 100%; height: auto; transform: scaleX(-1); display: block; object-fit: cover; }
-     .overlay { position: absolute; bottom: 0; left: 0; right: 0; text-align: center; padding: 25px 20px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); }
-     .question-text { font-size: 24px; font-weight: 600; color: #fff; margin-bottom: 20px; line-height: 1.4; text-shadow: 1px 1px 4px #000; }
-     #controls button { padding: 14px 30px; border-radius: 50px; font-size: 17px; border: 1.5px solid rgba(255,255,255,0.2); color: white; cursor: pointer; margin: 0 10px; font-weight: bold; min-width: 150px; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.4); backdrop-filter: blur(5px); }
-     #controls button:hover { transform: translateY(-2px); }
-     #nextBtn { background: rgba(9, 132, 227, 0.85); display: none; }
-     #nextBtn:hover { background: rgba(9, 132, 227, 1); }
-     #startBtn { background: rgba(214, 48, 49, 0.85); }
-     #startBtn:hover { background: rgba(214, 48, 49, 1); }
-     #finishBtn { background: rgba(0, 184, 148, 0.85); display: none; }
-     #finishBtn:hover { background: rgba(0, 184, 148, 1); }
-     #recordingBadge { position: absolute; top: 20px; right: 20px; background: rgba(255,0,0,0.8); color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 13px; display: none; animation: pulse 1.5s infinite; border: 1px solid red; }
-     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-     #startPanel { background: rgba(0,0,0,0.6); height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; width: 100%; }
+      body { background-color: transparent; color: white; display: flex; flex-direction: column; align-items: center; font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; margin: 0; padding: 10px; overflow: hidden; }
+      #vid-container { 
+          width: 100%; 
+          max-width: 850px; 
+          position: relative; 
+          background: #0d0d0d; 
+          border-radius: 30px; 
+          overflow: hidden; 
+          border: 1px solid rgba(9, 132, 227, 0.4);
+          box-shadow: 0 0 30px rgba(9, 132, 227, 0.2); 
+      }
+      video { width: 100%; height: auto; transform: scaleX(-1); display: block; object-fit: cover; }
+      .overlay { position: absolute; bottom: 0; left: 0; right: 0; text-align: center; padding: 35px 20px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); }
+      .question-text { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 25px; line-height: 1.4; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+      #controls button { 
+          padding: 16px 35px; 
+          border-radius: 12px; 
+          font-size: 16px; 
+          border: none; 
+          color: white; 
+          cursor: pointer; 
+          margin: 0 10px; 
+          font-weight: bold; 
+          min-width: 180px; 
+          transition: 0.4s; 
+          box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+      }
+      #nextBtn { background: linear-gradient(135deg, #0984e3, #00cec9); display: none; }
+      #nextBtn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(9, 132, 227, 0.4); }
+      #startBtn { background: linear-gradient(135deg, #d63031, #e17055); }
+      #startBtn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(214, 48, 49, 0.4); }
+      #finishBtn { background: linear-gradient(135deg, #00b894, #55efc4); display: none; }
+      #finishBtn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 184, 148, 0.4); }
+      #recordingBadge { 
+          position: absolute; 
+          top: 30px; 
+          right: 30px; 
+          background: rgba(255, 0, 0, 0.9); 
+          color: white; 
+          padding: 6px 18px; 
+          border-radius: 8px; 
+          font-weight: 800; 
+          font-size: 12px; 
+          display: none; 
+          animation: pulse 1.5s infinite; 
+          box-shadow: 0 0 15px rgba(255,0,0,0.5);
+      }
+      @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+      #startPanel { 
+          background: rgba(0,0,0,0.8); 
+          backdrop-filter: blur(10px);
+          height: 100%; 
+          display: flex; 
+          flex-direction: column; 
+          justify-content: center; 
+          align-items: center; 
+          position: absolute; 
+          top: 0; 
+          left: 0; 
+          width: 100%; 
+          z-index: 10;
+      }
   </style>
 </head>
 <body>

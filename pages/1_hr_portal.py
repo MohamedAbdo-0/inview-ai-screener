@@ -25,9 +25,34 @@ select_language()
 st.markdown(get_base_css(), unsafe_allow_html=True)
 st.markdown("""
     <style>
-        .stButton > button { background-color: #0984e3; color: white; border-radius: 8px; font-weight: bold; }
-        .stButton > button:hover { background-color: #74b9ff; }
-        .eval-box { background-color: #f1f8ff; border-left: 5px solid #0366d6; border-right: 5px solid #0366d6; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .stTabs [data-baseweb="tab-list"] {
+            background-color: transparent;
+            gap: 10px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            background-color: rgba(255,255,255,0.05);
+            border-radius: 10px 10px 0 0;
+            color: white;
+            padding: 10px 20px;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: rgba(9, 132, 227, 0.2) !important;
+            border-bottom: 2px solid #0984e3 !important;
+        }
+        .eval-box { 
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(9, 132, 227, 0.3);
+            padding: 25px; 
+            border-radius: 15px; 
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .report-header {
+            color: #00cec9;
+            text-shadow: 0 0 5px rgba(0, 206, 201, 0.5);
+            font-weight: 700;
+        }
     </style>
 """, unsafe_allow_html=True)
 
