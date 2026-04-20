@@ -62,7 +62,16 @@ translations = {
 
         "warn_no_face": "تحذير: المستطيل البصري فارغ، يجب تواجد المرشح.",
         "warn_multi_face": "تحذير أمني: كاميرا المراقبة التقطت أكثر من شخص.",
-        "safe_face": "الوضع البصري آمن."
+        "safe_face": "الوضع البصري آمن.",
+        
+        "lbl_tech": "المعرفة الفنية",
+        "lbl_comm": "التواصل",
+        "lbl_prob": "حل المشكلات",
+        "lbl_beh": "السلوك",
+        "lbl_total": "الدرجة النهائية",
+        "rec_hire": "توظيف — نوصي بالمضي قدماً",
+        "rec_consider": "للمراجعة — نوصي بمقابلة ثانية",
+        "rec_no_hire": "عدم توظيف — لا يلبي المعايير"
     },
     "en": {
         "page_title_app": "Inview AI Screener",
@@ -126,7 +135,16 @@ translations = {
 
         "warn_no_face": "Warning: Visual field is empty, candidate must be present.",
         "warn_multi_face": "Security Warning: Camera detected more than one person.",
-        "safe_face": "Visual status is safe."
+        "safe_face": "Visual status is safe.",
+        
+        "lbl_tech": "Technical",
+        "lbl_comm": "Communication",
+        "lbl_prob": "Problem Solving",
+        "lbl_beh": "Behavioral",
+        "lbl_total": "Overall Score",
+        "rec_hire": "HIRE — Recommended to Proceed",
+        "rec_consider": "CONSIDER — Second Interview Recommended",
+        "rec_no_hire": "DO NOT HIRE — Does not meet standards"
     }
 }
 

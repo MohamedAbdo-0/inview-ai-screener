@@ -85,10 +85,98 @@ def check_face_presence(frame, lang: str = "ar"):
 def build_analysis_prompt(questions_text: str, lang: str = "en") -> list:
     """
     Returns a chat_history (system + user) for a detailed, structured
-    AI evaluation of a candidate's interview answers.
+    AI evaluation of a candidate's interview answers in the specified language.
     """
 
-    system_prompt = """You are an expert Senior HR Analyst and Organizational Psychologist 
+    if lang == "ar":
+        system_prompt = """أنت خبير محالل أول للموارد البشرية وعالم نفس تنظيمي بخبرة تزيد عن 15 عاماً في تقييم المرشحين عبر المقابلات الفنية والسلوكية.
+دورك هو تقديم تقرير تقييم موضوعي ومفصل ومنظم. يجب أن تكون دقيقاً، وتعتمد على الأدلة، وتشير إلى أجزاء محددة من إجابات المرشح.
+حافظ دائماً على نبرة مهنية وبناءة.
+يجب أن يكون مخرجاتك بتنسيق Markdown صالح فقط - بدون JSON، وبدون كتل برمجية، وبدون مقدمات."""
+
+        user_prompt = f"""قم بتحليل نص المقابلة التالي وأصدر **تقرير تقييم شاملاً للمرشح**.
+
+---
+{questions_text}
+---
+
+## هيكل التقرير (اتبع هذا الترتيب بدقة):
+
+---
+
+# 🧠 تقرير تقييم المرشح
+
+## 1. ملخص تنفيذي
+اكتب 3-4 جمل تلخص الأداء العام للمرشح، والصفات البارزة، والمخاوف الرئيسية.
+
+---
+
+## 2. تفصيل لكل سؤال
+
+لكل **سؤال**، قدم ما يلي:
+- **السؤال:** (أعد صياغته باختصار)
+- **جودة الإجابة:** (ممتازة / جيدة / متوسطة / ضعيفة)
+- **الدرجة:** X / 10
+- **التحليل:** 2-3 جمل حول عمق ووضوح ومدى صلة الإجابة.
+- **نقاط القوة الرئيسية في هذه الإجابة:** (نقاط)
+- **الفجوات أو النقاط الضائعة:** (نقاط)
+
+---
+
+## 3. تقييم الكفاءات
+
+قيم كل كفاءة من 1-10 مع تبرير قصير:
+
+| الكفاءة | الدرجة | التبرير |
+|---|---|---|
+| المعرفة الفنية | X/10 | ... |
+| القدرة على حل المشكلات | X/10 | ... |
+| التواصل والوضوح | X/10 | ... |
+| التفكير النقدي | X/10 | ... |
+| الثقة وأسلوب الطرح | X/10 | ... |
+| عمق الخبرة | X/10 | ... |
+
+---
+
+## 4. نقاط القوة والأبرز
+اذكر أفضل 3-5 نقاط قوة حقيقية ظهرت خلال المقابلة، مع أدلة من الإجابات.
+
+---
+
+## 5. مجالات التطوير
+اذكر 3-5 فجوات أو نقاط ضعف محددة، مع اقتراحات عملية للتحسين.
+
+---
+
+## 6. إشارات الملاءمة الثقافية والسلوكية
+بناءً على الإجابات، حدد أي إشارات حول أسلوب عمل المرشح، وتوجهه نحو العمل الجماعي، وقدرته على التكيف، أو أي علامات حمراء محتملة.
+
+---
+
+## 7. الدرجة الإجمالية
+**الدرجة النهائية: XX / 100**
+
+قدم تفصيلاً للدرجات:
+- الدرجة الفنية: X/40
+- درجة التواصل: X/20
+- درجة حل المشكلات: X/20
+- الدرجة السلوكية: X/20
+
+---
+
+## 8. التوصية النهائية
+
+اختر واحدة:
+> 🟢 **توظيف** — مرشح قوي، نوصي بالمضي قدماً.
+> 🟡 **للمراجعة** — واعد ولكن يتطلب مقابلة ثانية أو تقييماً محدداً.
+> 🔴 **عدم التوظيف** — لا يلبي المعايير المطلوبة في الوقت الحالي.
+
+**التبرير:** (2-3 جمل تشرح القرار بناءً على الأدلة أعلاه.)
+
+---
+"""
+    else:
+        system_prompt = """You are an expert Senior HR Analyst and Organizational Psychologist 
 with 15+ years of experience evaluating candidates across technical and behavioral interviews.
 
 Your role is to provide an OBJECTIVE, DETAILED, and STRUCTURED evaluation report.
@@ -97,7 +185,7 @@ Always maintain a professional and constructive tone.
 
 Output ONLY valid Markdown — no JSON, no code blocks, no preamble."""
 
-    user_prompt = f"""Analyze the following interview transcript and produce a **comprehensive candidate evaluation report**.
+        user_prompt = f"""Analyze the following interview transcript and produce a **comprehensive candidate evaluation report**.
 
 ---
 {questions_text}

@@ -393,39 +393,47 @@ def proctor_chip(msg: str):
 def render_score_cards(report_text: str):
     """Extract scores from the AI report and render visual score cards."""
     import re
-    total_match = re.search(r"Total Score[:\s*]+(\d+)\s*/\s*100", report_text)
-    tech_match  = re.search(r"Technical Score[:\s*]+(\d+)\s*/\s*40", report_text)
-    comm_match  = re.search(r"Communication Score[:\s*]+(\d+)\s*/\s*20", report_text)
-    prob_match  = re.search(r"Problem Solving Score[:\s*]+(\d+)\s*/\s*20", report_text)
-    beh_match   = re.search(r"Behavioral Score[:\s*]+(\d+)\s*/\s*20", report_text)
+    # Match English or Arabic keywords
+    total_match = re.search(r"(Total Score|الدرجة النهائية)[:\s*]+(\d+)\s*/\s*100", report_text)
+    tech_match  = re.search(r"(Technical Score|الدرجة الفنية)[:\s*]+(\d+)\s*/\s*40", report_text)
+    comm_match  = re.search(r"(Communication Score|درجة التواصل)[:\s*]+(\d+)\s*/\s*20", report_text)
+    prob_match  = re.search(r"(Problem Solving Score|درجة حل المشكلات)[:\s*]+(\d+)\s*/\s*20", report_text)
+    beh_match   = re.search(r"(Behavioral Score|الدرجة السلوكية)[:\s*]+(\d+)\s*/\s*20", report_text)
 
-    total = total_match.group(1) if total_match else "—"
-    tech  = tech_match.group(1)  if tech_match  else "—"
-    comm  = comm_match.group(1)  if comm_match  else "—"
-    prob  = prob_match.group(1)  if prob_match  else "—"
-    beh   = beh_match.group(1)   if beh_match   else "—"
+    total = total_match.group(2) if total_match else "—"
+    tech  = tech_match.group(2)  if tech_match  else "—"
+    comm  = comm_match.group(2)  if comm_match  else "—"
+    prob  = prob_match.group(2)  if prob_match  else "—"
+    beh   = beh_match.group(2)   if beh_match   else "—"
+
+    # Use translations for labels if available, else fallback
+    lbl_tech = t('lbl_tech') if t('lbl_tech') != 'lbl_tech' else "Technical"
+    lbl_comm = t('lbl_comm') if t('lbl_comm') != 'lbl_comm' else "Communication"
+    lbl_prob = t('lbl_prob') if t('lbl_prob') != 'lbl_prob' else "Problem Solving"
+    lbl_beh  = t('lbl_beh')  if t('lbl_beh') != 'lbl_beh'  else "Behavioral"
+    lbl_total = t('lbl_total') if t('lbl_total') != 'lbl_total' else "Overall Score"
 
     st.markdown(f"""
     <div class="scores-grid">
         <div class="score-card">
             <span class="sc-val" style="color:#0984e3">{tech}<span style="font-size:.9rem;opacity:.6">/40</span></span>
-            <span class="sc-lbl">Technical</span>
+            <span class="sc-lbl">{lbl_tech}</span>
         </div>
         <div class="score-card">
             <span class="sc-val" style="color:#1a936f">{comm}<span style="font-size:.9rem;opacity:.6">/20</span></span>
-            <span class="sc-lbl">Communication</span>
+            <span class="sc-lbl">{lbl_comm}</span>
         </div>
         <div class="score-card">
             <span class="sc-val" style="color:#fdcb6e">{prob}<span style="font-size:.9rem;opacity:.6">/20</span></span>
-            <span class="sc-lbl">Problem Solving</span>
+            <span class="sc-lbl">{lbl_prob}</span>
         </div>
         <div class="score-card">
             <span class="sc-val" style="color:#a29bfe">{beh}<span style="font-size:.9rem;opacity:.6">/20</span></span>
-            <span class="sc-lbl">Behavioral</span>
+            <span class="sc-lbl">{lbl_beh}</span>
         </div>
         <div class="score-card total">
             <span class="sc-val">{total}<span style="font-size:2.4rem;opacity:.5">/100</span></span>
-            <span class="sc-lbl">Overall Score</span>
+            <span class="sc-lbl">{lbl_total}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -434,12 +442,13 @@ def render_score_cards(report_text: str):
 def render_recommendation(report_text: str):
     """Detect the final recommendation and render a styled card."""
     rt = report_text.upper()
-    if "DO NOT HIRE" in rt or "DO NOT HIRE" in report_text:
-        cls, icon, label = "rec-no-hire", "🔴", "DO NOT HIRE"
-    elif "CONSIDER" in rt:
-        cls, icon, label = "rec-consider", "🟡", "CONSIDER — Second Interview Recommended"
+    # Check for English or Arabic keywords
+    if "DO NOT HIRE" in rt or "عدم التوظيف" in report_text:
+        cls, icon, label = "rec-no-hire", "🔴", t('rec_no_hire') if t('rec_no_hire') != 'rec_no_hire' else "DO NOT HIRE"
+    elif "CONSIDER" in rt or "للمراجعة" in report_text:
+        cls, icon, label = "rec-consider", "🟡", t('rec_consider') if t('rec_consider') != 'rec_consider' else "CONSIDER — Second Interview Recommended"
     else:
-        cls, icon, label = "rec-hire", "🟢", "HIRE — Recommended to Proceed"
+        cls, icon, label = "rec-hire", "🟢", t('rec_hire') if t('rec_hire') != 'rec_hire' else "HIRE — Recommended to Proceed"
 
     st.markdown(f"""
     <div class="{cls}">
@@ -651,7 +660,7 @@ with tab2:
 
                 progress.progress(70, text="Running AI deep analysis…")
 
-                chat_history = build_analysis_prompt(questions_text_with_answers)
+                chat_history = build_analysis_prompt(questions_text_with_answers, lang=st.session_state.lang)
                 try:
                     ai_report = get_ai_response(HF_TOKEN, chat_history)
                     db["analysis_report"] = ai_report
