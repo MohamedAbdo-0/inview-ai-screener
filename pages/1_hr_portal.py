@@ -611,15 +611,15 @@ with tab2:
                     tmp_wav  = f"temp_audio_{i}.wav"
 
                     _sp.run(
-                        [ffmpeg_exe, "-i", vid_path,
-                         "-ss", str(start_t), "-t", str(duration),
+                        [ffmpeg_exe, "-ss", str(start_t), "-i", vid_path,
+                         "-t", str(duration),
                          "-vn", "-acodec", "pcm_s16le",
                          "-ar", "16000", "-ac", "1", tmp_wav, "-y"],
                         check=True, capture_output=True,
                     )
 
                     try:
-                        transcript_i = transcribe_audio(tmp_wav, HF_TOKEN)
+                        transcript_i = transcribe_audio(tmp_wav, HF_TOKEN, lang=st.session_state.lang)
                         if not transcript_i or not transcript_i.strip():
                             transcript_i = t("no_speech")
                     except Exception:

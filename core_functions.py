@@ -7,15 +7,21 @@ import sys
 
 
 # ── SPEECH TO TEXT ────────────────────────────────────────────────────────────
-def transcribe_audio(audio_file_path: str, hf_token: str) -> str:
+def transcribe_audio(audio_file_path: str, hf_token: str, lang: str = "ar") -> str:
     client = InferenceClient(token=hf_token)
     max_retries = 3
+    # Use whisper-large-v3 for higher accuracy, especially for Arabic
+    model_id = "openai/whisper-large-v3" 
+    
     for attempt in range(max_retries):
         try:
+            # We can't always pass language directly in automatic_speech_recognition 
+            # as it depends on the task support, but we can try to guide it
             result = client.automatic_speech_recognition(
                 audio_file_path,
-                model="openai/whisper-large-v3-turbo"
+                model=model_id,
             )
+            
             if isinstance(result, dict) and "text" in result:
                 return result["text"]
             elif hasattr(result, "text"):
@@ -25,7 +31,15 @@ def transcribe_audio(audio_file_path: str, hf_token: str) -> str:
             if "IncompleteRead" in str(e) or attempt < max_retries - 1:
                 time.sleep(2)
                 continue
-            raise ValueError(f"Connection failed: {e}")
+            # Fallback to turbo if main fails
+            try:
+                result = client.automatic_speech_recognition(
+                    audio_file_path,
+                    model="openai/whisper-large-v3-turbo",
+                )
+                return result["text"] if isinstance(result, dict) else str(result)
+            except:
+                raise ValueError(f"Connection failed: {e}")
 
 
 # ── AI CHAT ───────────────────────────────────────────────────────────────────
