@@ -703,13 +703,14 @@ with tab2:
             if blocks:
                 html = '<div class="transcript-wrap"><div class="transcript-title">🗒️ Full Transcript</div>'
                 for blk in blocks:
-                    html += f"""
-                    <div class="q-block">
-                        <div class="q-block-label">Q{blk['index']} · {blk['skill']}</div>
-                        <div class="q-block-question">{blk['question']}</div>
-                        <div class="q-block-answer">"{blk['answer']}"</div>
-                    </div>
-                    """
+                    # Remove newlines from HTML to prevent rendering issues in st.markdown
+                    html += (
+                        f'<div class="q-block">'
+                        f'<div class="q-block-label">Q{blk["index"]} · {blk["skill"]}</div>'
+                        f'<div class="q-block-question">{blk["question"]}</div>'
+                        f'<div class="q-block-answer">"{blk["answer"]}"</div>'
+                        f'</div>'
+                    )
                 html += "</div>"
                 st.markdown(html, unsafe_allow_html=True)
             else:
