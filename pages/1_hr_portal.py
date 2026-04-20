@@ -1,187 +1,728 @@
-# Inview AI Screener
+# Inview AI Screener — HR Portal
 import streamlit as st
 import os
 import sys
 from dotenv import load_dotenv
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 try:
     from db_manager import get_db, save_db
     import core_functions
     import importlib
     importlib.reload(core_functions)
-    from core_functions import transcribe_audio, get_ai_response
+    from core_functions import (
+        transcribe_audio,
+        get_ai_response,
+        build_analysis_prompt,
+    )
     from i18n import t, get_base_css, select_language
 except ImportError as e:
-    st.error(f"خطأ في مسار البيئة: {e}")
+    st.error(f"Import error: {e}")
+    st.stop()
 
 load_dotenv()
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-st.set_page_config(page_title="Inview HR Portal", page_icon="🏢", layout="wide")
+st.set_page_config(
+    page_title="Inview — HR Portal",
+    page_icon="🏢",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 
 select_language()
 
-st.markdown(get_base_css(), unsafe_allow_html=True)
-st.markdown("""
-    <style>
-        .stTabs [data-baseweb="tab-list"] {
-            background-color: transparent;
-            gap: 10px;
-        }
-        .stTabs [data-baseweb="tab"] {
-            background-color: rgba(255,255,255,0.05);
-            border-radius: 10px 10px 0 0;
-            color: white;
-            padding: 10px 20px;
-        }
-        .stTabs [aria-selected="true"] {
-            background-color: rgba(9, 132, 227, 0.2) !important;
-            border-bottom: 2px solid #0984e3 !important;
-        }
-        .eval-box { 
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(9, 132, 227, 0.3);
-            padding: 25px; 
-            border-radius: 15px; 
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .report-header {
-            color: #00cec9;
-            text-shadow: 0 0 5px rgba(0, 206, 201, 0.5);
-            font-weight: 700;
-        }
-    </style>
+# ── DESIGN SYSTEM ──────────────────────────────────────────────────────────────
+HR_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=Tajawal:wght@300;400;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    --orange:       #ff6b35;
+    --orange-dim:   rgba(255,107,53,0.12);
+    --orange-border:rgba(255,107,53,0.30);
+    --teal:         #1a936f;
+    --teal-dim:     rgba(26,147,111,0.12);
+    --teal-border:  rgba(26,147,111,0.30);
+    --blue:         #0984e3;
+    --blue-dim:     rgba(9,132,227,0.10);
+    --red:          #e17055;
+    --red-dim:      rgba(225,112,85,0.12);
+    --amber:        #fdcb6e;
+    --amber-dim:    rgba(253,203,110,0.12);
+    --surface:      rgba(255,255,255,0.055);
+    --border:       rgba(255,255,255,0.10);
+    --text:         #ffffff;
+    --muted:        rgba(255,255,255,0.55);
+    --bg:           #080c14;
+}
+
+html, body, [data-testid="stAppViewContainer"] {
+    background: var(--bg) !important;
+    font-family: 'DM Sans','Tajawal',sans-serif;
+    color: var(--text);
+}
+
+[data-testid="stAppViewContainer"]::before {
+    content:'';position:fixed;inset:0;pointer-events:none;
+    background:
+        radial-gradient(ellipse 70% 50% at 15% -5%, rgba(255,107,53,.14) 0%,transparent 60%),
+        radial-gradient(ellipse 50% 40% at 85% 105%, rgba(26,147,111,.12) 0%,transparent 55%);
+    z-index:0;
+}
+
+#MainMenu,footer,header,[data-testid="stToolbar"],[data-testid="stDecoration"],
+[data-testid="stSidebar"]{display:none!important}
+
+.main .block-container{
+    padding: 2rem 3rem !important;
+    max-width: 1300px !important;
+    margin: 0 auto;
+    position: relative; z-index: 1;
+}
+
+/* ── PAGE HEADER ── */
+.page-header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 36px; padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+}
+.page-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: var(--orange-dim); border: 1px solid var(--orange-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+}
+.page-title {
+    font-family:'Syne',sans-serif; font-size:1.6rem;
+    font-weight:800; margin:0; letter-spacing:-.02em;
+}
+.page-badge {
+    margin-left:auto;
+    background: var(--orange-dim); border:1px solid var(--orange-border);
+    border-radius:100px; padding:5px 14px;
+    font-size:11px; font-weight:500; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--orange);
+}
+
+/* ── TABS ── */
+.stTabs [data-baseweb="tab-list"] {
+    background:transparent!important;
+    gap:8px; border-bottom:1px solid var(--border)!important;
+}
+.stTabs [data-baseweb="tab"] {
+    background:transparent!important;
+    border-radius:10px 10px 0 0!important;
+    color:var(--muted)!important;
+    padding:10px 24px!important;
+    font-family:'Syne',sans-serif!important;
+    font-size:.85rem!important; font-weight:600!important;
+    border:none!important; transition:all .2s!important;
+}
+.stTabs [aria-selected="true"] {
+    color:var(--text)!important;
+    background:var(--orange-dim)!important;
+    border-bottom:2px solid var(--orange)!important;
+}
+
+/* ── QUESTION CARDS ── */
+.q-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--orange);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    display: flex; align-items: flex-start; gap: 14px;
+    transition: border-color .2s;
+}
+.q-card:hover { border-left-color: var(--teal); }
+.q-num {
+    font-family:'JetBrains Mono',monospace;
+    font-size:.75rem; color:var(--orange);
+    background:var(--orange-dim); border-radius:6px;
+    padding:3px 8px; flex-shrink:0; margin-top:2px;
+}
+.q-text { flex:1; font-size:.9rem; line-height:1.55; }
+.q-skill {
+    font-size:.75rem; color:var(--muted);
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:100px; padding:3px 10px; flex-shrink:0;
+}
+
+/* ── STATUS BANNER ── */
+.status-banner {
+    border-radius:14px; padding:20px 24px;
+    display:flex; align-items:center; gap:16px;
+    margin-bottom:28px;
+}
+.status-banner.pending  { background:var(--amber-dim); border:1px solid rgba(253,203,110,.3); }
+.status-banner.success  { background:var(--teal-dim);  border:1px solid var(--teal-border);  }
+.status-banner.danger   { background:var(--red-dim);   border:1px solid rgba(225,112,85,.3); }
+.status-icon { font-size:1.6rem; }
+.status-text { font-size:.9rem; line-height:1.5; }
+.status-text strong { display:block; font-size:1rem; margin-bottom:3px; }
+
+/* ── PROCTORING BADGE ── */
+.proctor-chip {
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:100px; padding:7px 16px;
+    font-size:.82rem; margin-bottom:20px;
+}
+.proctor-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* ── TRANSCRIPT CARD ── */
+.transcript-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin: 24px 0;
+}
+.transcript-title {
+    font-family:'Syne',sans-serif; font-size:1rem;
+    font-weight:700; margin-bottom:20px;
+    display:flex; align-items:center; gap:10px;
+    color:var(--text);
+}
+.q-block {
+    border-left:2px solid var(--orange-border);
+    padding: 12px 16px;
+    margin-bottom:16px;
+    border-radius: 0 8px 8px 0;
+    background:rgba(255,107,53,.04);
+}
+.q-block-label {
+    font-size:.75rem; font-weight:600;
+    color:var(--orange); letter-spacing:.08em;
+    text-transform:uppercase; margin-bottom:6px;
+}
+.q-block-question { font-size:.88rem; font-weight:500; margin-bottom:8px; }
+.q-block-answer {
+    font-size:.85rem; color:var(--muted); line-height:1.65;
+    font-style:italic;
+}
+
+/* ── SCORE CARDS ── */
+.scores-grid {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:14px; margin:24px 0;
+}
+.score-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; padding:20px 16px; text-align:center;
+}
+.score-card .sc-val {
+    font-family:'Syne',sans-serif; font-size:1.8rem;
+    font-weight:800; display:block; margin-bottom:4px;
+}
+.score-card .sc-lbl {
+    font-size:.72rem; color:var(--muted);
+    letter-spacing:.08em; text-transform:uppercase;
+}
+.score-card.total {
+    background:var(--orange-dim); border-color:var(--orange-border);
+    grid-column:span 4;
+}
+.score-card.total .sc-val {
+    font-size:2.4rem;
+    background:linear-gradient(135deg,#ff6b35,#f7c59f);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text;
+}
+
+/* ── RECOMMENDATION BADGES ── */
+.rec-hire    { background:rgba(26,147,111,.15); border:1px solid var(--teal-border);   border-radius:14px; padding:20px 24px; }
+.rec-consider{ background:var(--amber-dim);     border:1px solid rgba(253,203,110,.3); border-radius:14px; padding:20px 24px; }
+.rec-no-hire { background:var(--red-dim);       border:1px solid rgba(225,112,85,.3);  border-radius:14px; padding:20px 24px; }
+.rec-title { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:8px; }
+.rec-reason{ font-size:.88rem; color:var(--muted); line-height:1.6; }
+
+/* ── EVALUATION CONTAINER ── */
+.eval-section {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; padding:32px;
+    margin:20px 0;
+}
+.eval-section h1,.eval-section h2,.eval-section h3 {
+    font-family:'Syne',sans-serif!important;
+    letter-spacing:-.02em;
+}
+.eval-section table {
+    width:100%; border-collapse:collapse;
+    font-size:.88rem; margin:12px 0;
+}
+.eval-section th {
+    background:var(--orange-dim); color:var(--orange);
+    padding:10px 14px; text-align:left; font-weight:600;
+    font-size:.78rem; letter-spacing:.06em; text-transform:uppercase;
+}
+.eval-section td {
+    padding:10px 14px; border-bottom:1px solid var(--border);
+    color:var(--muted);
+}
+.eval-section td:first-child { color:var(--text); font-weight:500; }
+
+/* ── STREAMLIT OVERRIDES ── */
+[data-testid="stTextArea"] textarea,
+[data-testid="stTextInput"] input {
+    background:var(--surface)!important;
+    border:1px solid var(--border)!important;
+    color:var(--text)!important;
+    border-radius:10px!important;
+    font-family:'DM Sans',sans-serif!important;
+}
+[data-testid="stTextArea"] textarea:focus,
+[data-testid="stTextInput"] input:focus {
+    border-color:var(--orange)!important;
+    box-shadow:0 0 0 2px var(--orange-border)!important;
+}
+
+[data-testid="stButton"] > button {
+    border-radius:10px!important;
+    font-family:'Syne',sans-serif!important;
+    font-size:.85rem!important; font-weight:600!important;
+    letter-spacing:.04em!important;
+    transition:all .25s!important;
+}
+[data-testid="stButton"][data-key="add_q"] > button {
+    background:var(--orange-dim)!important;
+    border:1px solid var(--orange-border)!important;
+    color:var(--orange)!important;
+}
+[data-testid="stButton"][data-key="confirm_btn"] > button,
+[data-testid="stButton"][data-key="analyze_btn"] > button {
+    background:linear-gradient(135deg,#ff6b35,#e55a20)!important;
+    border:none!important; color:#fff!important;
+    box-shadow:0 4px 20px rgba(255,107,53,.3)!important;
+}
+[data-testid="stButton"][data-key="confirm_btn"] > button:hover,
+[data-testid="stButton"][data-key="analyze_btn"] > button:hover {
+    transform:translateY(-2px)!important;
+    box-shadow:0 8px 28px rgba(255,107,53,.45)!important;
+}
+[data-testid="stButton"][data-key="delete_btn"] > button {
+    background:var(--red-dim)!important;
+    border:1px solid rgba(225,112,85,.3)!important;
+    color:var(--red)!important;
+}
+[data-testid="stButton"][data-key="reset_btn"] > button {
+    background:var(--surface)!important;
+    border:1px solid var(--border)!important;
+    color:var(--muted)!important;
+}
+
+[data-testid="stVideo"] { border-radius:14px!important; overflow:hidden!important; }
+[data-testid="stSpinner"] > div { color:var(--orange)!important; }
+
+/* ── PROGRESS STEPS ── */
+.steps-row {
+    display:flex; gap:0; margin-bottom:32px;
+}
+.step {
+    flex:1; text-align:center; position:relative;
+    padding:14px 8px 10px;
+}
+.step::after {
+    content:''; position:absolute;
+    top:22px; left:50%; width:100%; height:1px;
+    background:var(--border);
+}
+.step:last-child::after { display:none; }
+.step-num {
+    width:30px; height:30px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-size:.8rem; font-weight:700;
+    position:relative; z-index:1; margin-bottom:6px;
+}
+.step.done .step-num  { background:var(--teal); color:#fff; }
+.step.active .step-num{ background:var(--orange); color:#fff; }
+.step.idle .step-num  { background:var(--surface); border:1px solid var(--border); color:var(--muted); }
+.step-label { font-size:.72rem; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; }
+.step.active .step-label { color:var(--orange); }
+.step.done .step-label   { color:var(--teal); }
+
+/* RTL */
+[dir="rtl"] .page-badge { margin-left:0; margin-right:auto; }
+[dir="rtl"] .q-card { border-left:none; border-right:3px solid var(--orange); }
+[dir="rtl"] .q-block { border-left:none; border-right:2px solid var(--orange-border); border-radius:8px 0 0 8px; }
+</style>
+"""
+
+st.markdown(HR_CSS, unsafe_allow_html=True)
+
+# ── HELPER: STATUS → STEP INDEX ───────────────────────────────────────────────
+STATUS_STEP = {
+    "pending":              0,
+    "ready_for_candidate":  1,
+    "completed":            2,
+    "analyzed":             3,
+}
+
+def render_steps(current_status: str):
+    step_idx = STATUS_STEP.get(current_status, 0)
+    labels = ["Setup Questions", "Waiting Candidate", "Interview Done", "Report Ready"]
+    html = '<div class="steps-row">'
+    for i, lbl in enumerate(labels):
+        if i < step_idx:
+            cls = "done";  num = "✓"
+        elif i == step_idx:
+            cls = "active"; num = str(i+1)
+        else:
+            cls = "idle";  num = str(i+1)
+        html += f'<div class="step {cls}"><div class="step-num">{num}</div><div class="step-label">{lbl}</div></div>'
+    html += "</div>"
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def proctor_chip(msg: str):
+    safe = "safe" in msg.lower() or "آمن" in msg
+    dot_color = "#1a936f" if safe else "#e17055"
+    icon = "🛡️" if safe else "⚠️"
+    st.markdown(
+        f'<div class="proctor-chip">'
+        f'<span class="proctor-dot" style="background:{dot_color}"></span>'
+        f'{icon} <strong>Proctoring:</strong> {msg}'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_score_cards(report_text: str):
+    """Extract scores from the AI report and render visual score cards."""
+    import re
+    total_match = re.search(r"Total Score[:\s*]+(\d+)\s*/\s*100", report_text)
+    tech_match  = re.search(r"Technical Score[:\s*]+(\d+)\s*/\s*40", report_text)
+    comm_match  = re.search(r"Communication Score[:\s*]+(\d+)\s*/\s*20", report_text)
+    prob_match  = re.search(r"Problem Solving Score[:\s*]+(\d+)\s*/\s*20", report_text)
+    beh_match   = re.search(r"Behavioral Score[:\s*]+(\d+)\s*/\s*20", report_text)
+
+    total = total_match.group(1) if total_match else "—"
+    tech  = tech_match.group(1)  if tech_match  else "—"
+    comm  = comm_match.group(1)  if comm_match  else "—"
+    prob  = prob_match.group(1)  if prob_match  else "—"
+    beh   = beh_match.group(1)   if beh_match   else "—"
+
+    st.markdown(f"""
+    <div class="scores-grid">
+        <div class="score-card">
+            <span class="sc-val" style="color:#0984e3">{tech}<span style="font-size:.9rem;opacity:.6">/40</span></span>
+            <span class="sc-lbl">Technical</span>
+        </div>
+        <div class="score-card">
+            <span class="sc-val" style="color:#1a936f">{comm}<span style="font-size:.9rem;opacity:.6">/20</span></span>
+            <span class="sc-lbl">Communication</span>
+        </div>
+        <div class="score-card">
+            <span class="sc-val" style="color:#fdcb6e">{prob}<span style="font-size:.9rem;opacity:.6">/20</span></span>
+            <span class="sc-lbl">Problem Solving</span>
+        </div>
+        <div class="score-card">
+            <span class="sc-val" style="color:#a29bfe">{beh}<span style="font-size:.9rem;opacity:.6">/20</span></span>
+            <span class="sc-lbl">Behavioral</span>
+        </div>
+        <div class="score-card total">
+            <span class="sc-val">{total}<span style="font-size:2.4rem;opacity:.5">/100</span></span>
+            <span class="sc-lbl">Overall Score</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_recommendation(report_text: str):
+    """Detect the final recommendation and render a styled card."""
+    rt = report_text.upper()
+    if "DO NOT HIRE" in rt or "DO NOT HIRE" in report_text:
+        cls, icon, label = "rec-no-hire", "🔴", "DO NOT HIRE"
+    elif "CONSIDER" in rt:
+        cls, icon, label = "rec-consider", "🟡", "CONSIDER — Second Interview Recommended"
+    else:
+        cls, icon, label = "rec-hire", "🟢", "HIRE — Recommended to Proceed"
+
+    st.markdown(f"""
+    <div class="{cls}">
+        <div class="rec-title">{icon} Final Recommendation: {label}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ── PAGE ───────────────────────────────────────────────────────────────────────
+st.markdown(f"""
+<div class="page-header">
+    <div class="page-icon">🏢</div>
+    <div>
+        <div class="page-title">{t('hr_main_title')}</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.45);margin-top:2px;">Inview AI Screener</div>
+    </div>
+    <div class="page-badge">HR Dashboard</div>
+</div>
 """, unsafe_allow_html=True)
 
-st.title(t("hr_main_title"))
-
 db = get_db()
-tab1, tab2 = st.tabs([t("tab_prepare"), t("tab_report")])
+render_steps(db.get("status", "pending"))
 
+tab1, tab2 = st.tabs([f"📋  {t('tab_prepare')}", f"📊  {t('tab_report')}"])
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 1 — PREPARE INTERVIEW
+# ══════════════════════════════════════════════════════════════════════════════
 with tab1:
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2, 1], gap="large")
+
     with col1:
-        new_q = st.text_area(t("q_text"))
+        st.markdown('<div style="font-size:.8rem;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Question</div>', unsafe_allow_html=True)
+        new_q = st.text_area(
+            label="",
+            placeholder=t("q_text"),
+            height=130,
+            label_visibility="collapsed",
+        )
+
     with col2:
-        new_skill = st.text_input(t("q_skill"))
-        if st.button(t("add_q_btn")):
+        st.markdown('<div style="font-size:.8rem;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Skill Tag</div>', unsafe_allow_html=True)
+        new_skill = st.text_input(
+            label="",
+            placeholder=t("q_skill"),
+            label_visibility="collapsed",
+        )
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+        if st.button(f"＋  {t('add_q_btn')}", use_container_width=True, key="add_q"):
             if new_q and new_skill:
                 db["questions"].append({"question": new_q, "skill": new_skill})
                 save_db(db)
                 st.success(t("q_added_success"))
+                st.rerun()
             else:
                 st.error(t("fill_fields_err"))
-                
-    if db["questions"]:
-        for i, q in enumerate(db["questions"]):
-            st.info(f"**{t('q_word')} {i+1}:** {q['question']} *({t('skill_word')}: {q['skill']})*")
-            
-        if st.button(t("delete_all_q_btn")):
-            db["questions"] = []
-            db["status"] = "pending"
-            save_db(db)
-            st.rerun()
-            
-        if st.button(t("confirm_open_interview_btn"), type="primary"):
-            db["status"] = "ready_for_candidate"
-            db["video_path"] = None
-            db["analysis_report"] = ""
-            save_db(db)
-            st.success(t("questions_confirmed"))
 
+    # Question list
+    if db["questions"]:
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:.8rem;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">{len(db["questions"])} Questions Added</div>', unsafe_allow_html=True)
+
+        for i, q in enumerate(db["questions"]):
+            st.markdown(f"""
+            <div class="q-card">
+                <span class="q-num">Q{i+1}</span>
+                <span class="q-text">{q['question']}</span>
+                <span class="q-skill">🏷 {q['skill']}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+        ca, cb = st.columns(2)
+        with ca:
+            if st.button(f"🗑  {t('delete_all_q_btn')}", use_container_width=True, key="delete_btn"):
+                db["questions"] = []
+                db["status"] = "pending"
+                save_db(db)
+                st.rerun()
+        with cb:
+            if st.button(f"✅  {t('confirm_open_interview_btn')}", use_container_width=True, key="confirm_btn", type="primary"):
+                db["status"] = "ready_for_candidate"
+                db["video_path"] = None
+                db["analysis_report"] = ""
+                save_db(db)
+                st.success(t("questions_confirmed"))
+                st.rerun()
+    else:
+        st.markdown("""
+        <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.3);">
+            <div style="font-size:2.5rem;margin-bottom:12px;">📝</div>
+            <div style="font-size:.9rem;">No questions added yet. Start by adding your first question above.</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 2 — REPORT
+# ══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    if db["status"] in ["pending", "ready_for_candidate"]:
-        st.warning(t("wait_candidate"))
-    elif db["status"] == "completed":
-        st.success(t("cand_completed"))
-        st.markdown(f"{t('proctor_report')} {db['proctor_msg']}")
-        
-        st.markdown(t("watch_interview"))
+    status = db.get("status", "pending")
+
+    # ── PENDING / READY ──────────────────────────────────────────────────────
+    if status in ("pending", "ready_for_candidate"):
+        icon  = "⏳" if status == "pending" else "🎙️"
+        title = "Setup in Progress" if status == "pending" else "Waiting for Candidate"
+        body  = "Add and confirm interview questions first." if status == "pending" else "The interview session is open. Waiting for the candidate to complete it."
+        st.markdown(f"""
+        <div class="status-banner pending">
+            <div class="status-icon">{icon}</div>
+            <div class="status-text"><strong>{title}</strong>{body}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ── COMPLETED — NEEDS ANALYSIS ───────────────────────────────────────────
+    elif status == "completed":
+        st.markdown("""
+        <div class="status-banner success">
+            <div class="status-icon">🎉</div>
+            <div class="status-text"><strong>Interview Completed</strong>The candidate has finished the interview. Review the recording and run AI analysis.</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        proctor_chip(db.get("proctor_msg", ""))
+
         if db.get("video_path") and os.path.exists(db["video_path"]):
+            st.markdown('<div style="font-size:.8rem;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">Recording</div>', unsafe_allow_html=True)
             st.video(db["video_path"])
         else:
             st.warning(t("video_missing"))
-        
-        if st.button(t("extract_analyze_btn"), type="primary", use_container_width=True):
+
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+        if st.button(f"🤖  {t('extract_analyze_btn')}", type="primary", use_container_width=True, key="analyze_btn"):
             if not HF_TOKEN:
                 st.error(t("hf_token_err"))
                 st.stop()
-                
-            splits = db["splits"]
-            vid_path = db["video_path"]
+
+            splits        = db["splits"]
+            vid_path      = db["video_path"]
             all_questions = db["questions"]
-            
-            with st.spinner(t("processing")):
-                questions_text_with_answers = ""
-                display_transcript_markdown = t("transcript_title")
-                
-                try:
-                    import imageio_ffmpeg
-                    import subprocess
-                    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
-                    
-                    for i, q in enumerate(all_questions):
-                        start_time = float(splits[i])
-                        end_time = float(splits[i+1])
-                        duration = max(0.1, end_time - start_time)
-                        tmp_audio_path_i = f"temp_audio_{i}.wav"
-                        
-                        subprocess.run([ffmpeg_exe, "-i", vid_path, "-ss", str(start_time), "-t", str(duration), "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", tmp_audio_path_i, "-y"], check=True, capture_output=True)
-                        
-                        try:
-                            transcript_i = transcribe_audio(tmp_audio_path_i, HF_TOKEN)
-                            if not transcript_i or transcript_i.strip() == "":
-                                transcript_i = t("no_speech")
-                        except Exception:
-                            transcript_i = t("short_ans_err")
-                        
-                        display_transcript_markdown += f"**{t('question_word')} {i+1}: {q['question']}**\n\n> \"{transcript_i}\"\n\n---\n"
-                        questions_text_with_answers += f"- {t('question_word')} {i+1}: {q['question']} ({t('skill_word')}: {q['skill']})\n  **{t('literal_text')}** {transcript_i}\n\n"
-                        
-                        try:
-                            os.remove(tmp_audio_path_i)
-                        except:
-                            pass
-                except Exception as e:
-                    st.error(f"{t('error_accured')} {e}")
-                    questions_text_with_answers = None
-                    
-                if questions_text_with_answers:
-                    db["transcript_markdown"] = display_transcript_markdown
-                    save_db(db)
-                    
-                    prompt_content = t("ai_prompt").format(text=questions_text_with_answers)
-                    chat_history = [{"role": "system", "content": t("ai_sys_prompt")}, {"role": "user", "content": prompt_content}]
+
+            questions_text_with_answers = ""
+            transcript_blocks           = []
+
+            progress = st.progress(0, text="Extracting audio segments…")
+
+            try:
+                import imageio_ffmpeg
+                import subprocess as _sp
+                ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+
+                for i, q in enumerate(all_questions):
+                    progress.progress(
+                        int((i / len(all_questions)) * 60),
+                        text=f"Transcribing answer {i+1}/{len(all_questions)}…"
+                    )
+                    start_t  = float(splits[i])
+                    end_t    = float(splits[i + 1])
+                    duration = max(0.1, end_t - start_t)
+                    tmp_wav  = f"temp_audio_{i}.wav"
+
+                    _sp.run(
+                        [ffmpeg_exe, "-i", vid_path,
+                         "-ss", str(start_t), "-t", str(duration),
+                         "-vn", "-acodec", "pcm_s16le",
+                         "-ar", "16000", "-ac", "1", tmp_wav, "-y"],
+                        check=True, capture_output=True,
+                    )
+
                     try:
-                        ai_evaluation = get_ai_response(HF_TOKEN, chat_history)
-                        db["analysis_report"] = ai_evaluation
-                        db["status"] = "analyzed"
-                        save_db(db)
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"{t('server_error')} {e}")
-                        
-    elif db["status"] == "analyzed":
-        st.markdown(t("full_interview"))
-        if db.get("video_path") and os.path.exists(db["video_path"]):
-            st.video(db["video_path"])
-        else:
-            st.error(t("video_missing"))
-            
-        st.markdown(db["transcript_markdown"])
-        st.markdown("<div class='eval-box'>", unsafe_allow_html=True)
-        st.markdown(t("ai_report_title"))
+                        transcript_i = transcribe_audio(tmp_wav, HF_TOKEN)
+                        if not transcript_i or not transcript_i.strip():
+                            transcript_i = t("no_speech")
+                    except Exception:
+                        transcript_i = t("short_ans_err")
+
+                    transcript_blocks.append({
+                        "question": q["question"],
+                        "skill":    q["skill"],
+                        "answer":   transcript_i,
+                        "index":    i + 1,
+                    })
+
+                    questions_text_with_answers += (
+                        f"Question {i+1}: {q['question']} (Skill: {q['skill']})\n"
+                        f"Candidate's Answer: {transcript_i}\n\n"
+                    )
+
+                    try:
+                        os.remove(tmp_wav)
+                    except Exception:
+                        pass
+
+            except Exception as e:
+                st.error(f"{t('error_accured')} {e}")
+                questions_text_with_answers = None
+
+            if questions_text_with_answers:
+                # Build structured transcript markdown
+                transcript_md = "## 📝 Interview Transcript\n\n"
+                for blk in transcript_blocks:
+                    transcript_md += (
+                        f"**Q{blk['index']}: {blk['question']}** *(Skill: {blk['skill']})*\n\n"
+                        f"> {blk['answer']}\n\n---\n\n"
+                    )
+                db["transcript_markdown"] = transcript_md
+                db["transcript_blocks"]   = transcript_blocks
+                save_db(db)
+
+                progress.progress(70, text="Running AI deep analysis…")
+
+                chat_history = build_analysis_prompt(questions_text_with_answers)
+                try:
+                    ai_report = get_ai_response(HF_TOKEN, chat_history)
+                    db["analysis_report"] = ai_report
+                    db["status"]          = "analyzed"
+                    save_db(db)
+                    progress.progress(100, text="Done!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"{t('server_error')} {e}")
+
+    # ── ANALYZED — SHOW FULL REPORT ──────────────────────────────────────────
+    elif status == "analyzed":
+        st.markdown("""
+        <div class="status-banner success">
+            <div class="status-icon">✅</div>
+            <div class="status-text"><strong>Analysis Complete</strong>Full evaluation report is ready below.</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        proctor_chip(db.get("proctor_msg", ""))
+
+        # Video
+        with st.expander("🎬 Interview Recording", expanded=False):
+            if db.get("video_path") and os.path.exists(db["video_path"]):
+                st.video(db["video_path"])
+            else:
+                st.error(t("video_missing"))
+
+        # Score cards
+        render_score_cards(db["analysis_report"])
+
+        # Recommendation banner
+        render_recommendation(db["analysis_report"])
+
+        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+
+        # Transcript
+        with st.expander("📝 Interview Transcript", expanded=False):
+            blocks = db.get("transcript_blocks", [])
+            if blocks:
+                html = '<div class="transcript-wrap"><div class="transcript-title">🗒️ Full Transcript</div>'
+                for blk in blocks:
+                    html += f"""
+                    <div class="q-block">
+                        <div class="q-block-label">Q{blk['index']} · {blk['skill']}</div>
+                        <div class="q-block-question">{blk['question']}</div>
+                        <div class="q-block-answer">"{blk['answer']}"</div>
+                    </div>
+                    """
+                html += "</div>"
+                st.markdown(html, unsafe_allow_html=True)
+            else:
+                st.markdown(db.get("transcript_markdown", ""))
+
+        # Full AI Report
+        st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="eval-section">', unsafe_allow_html=True)
         st.markdown(db["analysis_report"])
         st.markdown("</div>", unsafe_allow_html=True)
-        
-        if st.button(t("reset_close_btn")):
-            db["status"] = "pending"
-            db["questions"] = []
-            db["analysis_report"] = ""
-            db["transcript_markdown"] = ""
+
+        # Reset
+        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+        if st.button(f"🔄  {t('reset_close_btn')}", use_container_width=True, key="reset_btn"):
+            db.update({
+                "status":             "pending",
+                "questions":          [],
+                "analysis_report":    "",
+                "transcript_markdown":"",
+                "transcript_blocks":  [],
+                "video_path":         None,
+                "proctor_msg":        "",
+            })
             save_db(db)
             st.rerun()
-
